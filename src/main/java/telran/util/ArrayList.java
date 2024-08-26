@@ -4,12 +4,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 @SuppressWarnings("unchecked")
 public class ArrayList<T> implements List<T> {
     private static final int DEFAULT_CAPACITY = 16;
     private Object[] array;
-    private int size;
+    private int size = 0;
 
     public ArrayList(int capacity) {
         array = new Object[capacity];
@@ -37,17 +38,6 @@ public class ArrayList<T> implements List<T> {
     }
 
     @Override
-    public boolean remove(T pattern) {
-        boolean res = false;
-        int index = indexOf(pattern);
-        if (index >= 0) {
-            res = true;
-            remove(index);
-        }
-        return res;
-    }
-
-    @Override
     public int size() {
         return size;
     }
@@ -55,11 +45,6 @@ public class ArrayList<T> implements List<T> {
     @Override
     public boolean isEmpty() {
         return size == 0;
-    }
-
-    @Override
-    public boolean contains(T pattern) {
-        return indexOf(pattern) >= 0;
     }
 
     @Override
@@ -76,19 +61,13 @@ public class ArrayList<T> implements List<T> {
         size++;
     }
 
-    private void checkIndex(int index, boolean sizeInclusive) {
-        int limit = sizeInclusive ? size : size - 1;
-        if (index < 0 || index > limit) {
-            throw new IndexOutOfBoundsException(index);
-        }
-    }
-
     @Override
     public T remove(int index) {
         checkIndex(index, false);
         T res = (T) array[index];
         size--;
         System.arraycopy(array, index + 1, array, index, size - index);
+        array[size] = null;
         return res;
     }
 
@@ -116,11 +95,35 @@ public class ArrayList<T> implements List<T> {
         return index;
     }
 
+    @Override
+    public boolean removeIf(Predicate<T> predicate) { 
+        // TODO // algorithm complexity O[N] // hint: two indices and
+        // going throught one array
+        boolean res = false;
+        // for (int index = 0; index < size; index++) {
+        //     T item = get(index);
+        //     if (predicate.test(item)) {
+        //         remove(index);
+        //         res = true;
+        //     } 
+        // }
+        for (int index = size - 1; index > -1; index--) {
+            T item = get(index);
+            if (predicate.test(item)) {
+                remove(index);
+                res = true;
+            }
+        }
+        return res;
+    }
+
     private class ArrayListIterator implements Iterator<T> {
         int currentIndex = 0;
+        private boolean flNext = false;
 
         @Override
         public boolean hasNext() {
+            flNext = true;
             return currentIndex < size;
         }
 
@@ -130,6 +133,15 @@ public class ArrayList<T> implements List<T> {
                 throw new NoSuchElementException();
             }
             return (T) array[currentIndex++];
+        }
+
+        @Override
+        public void remove() {
+            if (!flNext) {
+                throw new IllegalStateException();
+            }
+            ArrayList.this.remove(--currentIndex);
+            flNext = false;
         }
 
     }
