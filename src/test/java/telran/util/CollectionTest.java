@@ -7,8 +7,10 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.stream.IntStream;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 public abstract class CollectionTest {
     private static final int N_ELEMENTS = 1_000_000;
@@ -116,11 +118,15 @@ public abstract class CollectionTest {
     }
 
     @Test
+    @Timeout(value = 6000, unit = TimeUnit.MILLISECONDS)
     void performanceTest() {
-        collection.clear();
+        long start = System.nanoTime();
         IntStream.range(0, N_ELEMENTS).forEach(i -> collection.add(random.nextInt()));
         collection.clear();
-
+        IntStream.range(0, N_ELEMENTS).forEach(i -> collection.add(random.nextInt()));
+        collection.removeIf(n -> n % 2 == 0);
+        long end = System.nanoTime();
+        System.out.println("Execution time: " + (end - start) / N_ELEMENTS + " ms");
     }
 
 }

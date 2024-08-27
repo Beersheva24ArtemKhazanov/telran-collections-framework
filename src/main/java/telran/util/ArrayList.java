@@ -96,17 +96,8 @@ public class ArrayList<T> implements List<T> {
     }
 
     @Override
-    public boolean removeIf(Predicate<T> predicate) { 
-        // TODO // algorithm complexity O[N] // hint: two indices and
-        // going throught one array
+    public boolean removeIf(Predicate<T> predicate) {
         boolean res = false;
-        // for (int index = 0; index < size; index++) {
-        //     T item = get(index);
-        //     if (predicate.test(item)) {
-        //         remove(index);
-        //         res = true;
-        //     } 
-        // }
         for (int index = size - 1; index > -1; index--) {
             T item = get(index);
             if (predicate.test(item)) {
