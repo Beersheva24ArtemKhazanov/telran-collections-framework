@@ -122,17 +122,17 @@ public abstract class CollectionTest {
         assertFalse(collection.contains(10000000));
     }
 
-    // @Test
-    // @Timeout(value = 200, unit = TimeUnit.MILLISECONDS)
-    // void performanceTimeOutTest() {
-    //     long start = System.nanoTime();
-    //     IntStream.range(0, N_ELEMENTS).forEach(i -> collection.add(random.nextInt()));
-    //     collection.clear();
-    //     IntStream.range(0, N_ELEMENTS).forEach(i -> collection.add(random.nextInt()));
-    //     collection.removeIf(n -> n % 2 == 0);
-    //     long end = System.nanoTime();
-    //     System.out.println("Execution time: " + (end - start) / N_ELEMENTS + " ms");
-    // }
+    @Test
+    @Timeout(value = 2000, unit = TimeUnit.MILLISECONDS)
+    void performanceTimeOutTest() {
+        long start = System.nanoTime();
+        IntStream.range(0, N_ELEMENTS).forEach(i -> collection.add(random.nextInt()));
+        collection.clear();
+        IntStream.range(0, N_ELEMENTS).forEach(i -> collection.add(random.nextInt()));
+        collection.removeIf(n -> n % 2 == 0);
+        long end = System.nanoTime();
+        System.out.println("Execution time: " + (end - start) / N_ELEMENTS + " ms");
+    }
 
     @Test 
     void performanceTest() {
