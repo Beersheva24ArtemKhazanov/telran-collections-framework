@@ -27,11 +27,12 @@ public class TreeSet<T> implements Set<T> {
         }
 
         private Node<T> getLeastCurrent(Node<T> leastCurrent) {
-            while (leastCurrent.left != null) {
-                current = leastCurrent.left;
-                leastCurrent = leastCurrent.left;
+            if (leastCurrent != null) {
+                while (leastCurrent.left != null) {
+                    leastCurrent = leastCurrent.left;
+                }
             }
-			return leastCurrent.left == null ? leastCurrent : current;
+			return leastCurrent;
 		}
 
 		@Override
@@ -56,9 +57,9 @@ public class TreeSet<T> implements Set<T> {
 
 		private Node<T> getGreaterParent(Node<T> current) {
 			Node<T> parent = current.parent;
-            while (comparator.compare(current.obj, parent.obj) > 0 && parent != null) {
-                current = current.parent;
-                parent = current.parent;
+            while (parent != null && current == parent.right) {
+                current = parent;
+                parent = parent.parent;
             }
             return parent;
 		}
@@ -122,6 +123,7 @@ public class TreeSet<T> implements Set<T> {
         if (contains(pattern)) {
             Node<T> toRemoveNode = getNode(pattern);
             removeNode(toRemoveNode);
+            removed = true;
         }
         return removed;
     }
@@ -137,45 +139,34 @@ public class TreeSet<T> implements Set<T> {
 
 	private void removeJunction(Node<T> toRemoveNode) {
 		Node<T> node = getGreatestFrom(toRemoveNode.left);
-        if (node != null) {
-            toRemoveNode = node;
-            removeNode(node);
-        } else {
-            toRemoveNode = toRemoveNode.left;
-            removeNode(toRemoveNode.left);
-        }
+        toRemoveNode.obj = node.obj;
+        removeNonJunction(node);
 	}
 
 	private Node<T> getGreatestFrom(Node<T> node) {
-        Node<T> child = node.right;
-		while (comparator.compare(node.obj, child.obj) < 0 && child != null) {
-            node = child;
-            child = child.right;
+        while (node.right != null) {
+            node = node.right;
         }
         return node;
 	}
 
 	private void removeNonJunction(Node<T> toRemoveNode) {
+        Node<T> child = toRemoveNode.left != null ? toRemoveNode.left : toRemoveNode.right;
 		if (toRemoveNode.parent != null) {
-            if (toRemoveNode.left == null && toRemoveNode.right != null) {
-                Node<T> nodeRight = getNode(toRemoveNode.right.obj);
-                root.left = nodeRight;
-                toRemoveNode = null;
-            } else if (toRemoveNode.right == null && toRemoveNode.left != null) {
-                Node<T> nodeLeft = getNode(toRemoveNode.left.obj);
-                toRemoveNode.parent = nodeLeft;
-                toRemoveNode = null;
+            if (toRemoveNode == toRemoveNode.parent.left) {
+                toRemoveNode.parent.left = child;
             } else {
-                toRemoveNode = null;
+                toRemoveNode.parent.right = child;
+            }
+            if (child != null) {
+                child.parent = toRemoveNode.parent;
             }
         } else {
-            removeRoot(toRemoveNode);
+            root = child;
+            if (child != null) {
+                child.parent = null;
+            }
         }
-	}
-
-	private void removeRoot(Node<T> toRemoveNode) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'removeRoot'");
 	}
 
 	@Override
@@ -205,8 +196,9 @@ public class TreeSet<T> implements Set<T> {
 
     @Override
     public T get(Object pattern) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'get'");
+        T res = (T) pattern;
+        Node<T> node = getNode(res);
+        return node != null ? node.obj : null;
     }
 
     private Node<T> getParentOrNode(T pattern) {
