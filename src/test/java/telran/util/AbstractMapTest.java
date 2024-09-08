@@ -1,125 +1,106 @@
 package telran.util;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.BeforeEach;
+import java.util.Arrays;
+
 import org.junit.jupiter.api.Test;
 
 import telran.util.Map.Entry;
 
+@SuppressWarnings("unchecked")
 public abstract class AbstractMapTest {
-    Integer[] keys = { 1, -1, 5, 16, -13 };
+    Integer[] keys = { 1, -20, 10, 20, 12, 3 };
     Map<Integer, Integer> map;
+
+    void setUp() {
+        Arrays.stream(keys).forEach(k -> map.put(k, k * k));
+    }
+
     abstract <T> void runTest(T[] expected, T[] actual);
 
-    @BeforeEach
-    void setUp() {
-        // TODO
-        map = new HashMap<>();
-        for (Integer key : keys) {
-            map.put(key, key + 5);
-        }
+    @Test
+    void keySetTest() {
+        Integer[] actual = map.keySet().stream().toArray(Integer[]::new);
+        runTest(keys, actual);
+    }
+
+    @Test
+    void entrySetTest() {
+
+        Entry<Integer, Integer>[] entriesExpected = Arrays.stream(keys)
+                .map(k -> new Entry<Integer, Integer>(k, k * k)).toArray(Entry[]::new);
+        Entry<Integer, Integer>[] actualEntries = map.entrySet().stream().toArray(Entry[]::new);
+        runTest(entriesExpected, actualEntries);
     }
 
     @Test
     void getTest() {
-        for (Integer key : keys) {
-            Integer expectedValue = key + 5;
-            Integer actualValue = map.get(key);
-            assertEquals(expectedValue, actualValue);
-        }
+        Arrays.stream(keys).forEach(k -> assertEquals(k * k, map.get(k)));
+        assertNull(map.get(10000000));
     }
 
     @Test
-    void putTest() {
-        map.put(26, 15);
-        map.put(-14, 21);
-        assertEquals(13, map.put(5, 13));
-        
-        assertEquals(6, map.get(1));
-        assertEquals(4, map.get(-1));
-        assertEquals(10, map.get(5));
-        assertEquals(21, map.get(16));
-        assertEquals(-8, map.get(-13));
-    }
-    
-    @Test
-    void keySetTest() {
-        Integer[] expectedKeys = {1, -1, 5, 16, -13};
-        Integer[] expectedValues = {6, 4, 10, 21, -8};
-        Set<Integer> actualKeySet = map.keySet();
-        Integer[] actualKeys = new Integer[actualKeySet.size()];
-        Integer[] actualValues = new Integer[map.size()];
-
-        int index = 0;
-        for (Integer key : actualKeySet) {
-            actualKeys[index] = key;
-            actualValues[index] = map.get(key);
-            index++;
-        }
-        runTest(expectedKeys, actualKeys);
-        runTest(expectedValues, actualValues);
-    }
-
-    @Test
-    void valuesCollectionTest() {
-        Collection<Integer> values = map.values();
-        assertEquals(5, values.size());
-        assertFalse(values.contains(352));
-        assertTrue(values.contains(21));
-        assertTrue(values.contains(-8));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    void entrySetTest() {
-        Set<Map.Entry<Integer, Integer>> entries = map.entrySet();
-        assertEquals(5, entries.size());
-        Entry<Integer, Integer>[] expectedEntries = new Entry[]{
-            new Entry<>(1, map.get(1)),
-            new Entry<>(-1, map.get(-1)),
-            new Entry<>(5, map.get(5)),
-            new Entry<>(16, map.get(16)),
-            new Entry<>(-13, map.get(-13)),
-        };
-        Entry<Integer, Integer>[] actualEntries = new Entry[entries.size()];
-        int index = 0;
-        for (Map.Entry<Integer, Integer> entry : entries) {
-            actualEntries[index++] = new Entry<>(entry.getKey(), entry.getValue());
-        }
-
-        runTest(expectedEntries, actualEntries);
+    void getOrDefaultTest() {
+        Integer defaultValue = 0;
+        Arrays.stream(keys).forEach(k -> assertEquals(k * k, map.getOrDefault(k, defaultValue)));
+        assertEquals(defaultValue, map.getOrDefault(1000000, defaultValue));
     }
 
     @Test
     void containsKeyTest() {
-        for (var key : keys) {
-            assertTrue(map.containsKey(key));
-        }
-        assertFalse(map.containsKey(36));
+        Arrays.stream(keys).forEach(k -> assertTrue(map.containsKey(k)));
+        assertFalse(map.containsKey(1000000));
     }
 
     @Test
     void containsValueTest() {
-        for (var key : keys) {
-            assertTrue(map.containsValue(key + 5));
-        }
-        assertFalse(map.containsValue(36 + 5));
+        Arrays.stream(keys).forEach(k -> assertTrue(map.containsValue(k * k)));
+        assertFalse(map.containsValue(1000000));
+    }
+
+    @Test
+    void valuesTest() {
+        Integer[] expectedValues = Arrays.stream(keys).map(k -> k * k).sorted().toArray(Integer[]::new);
+        Integer[] actualValues = map.values().stream().sorted().toArray(Integer[]::new);
+        assertArrayEquals(expectedValues, actualValues);
     }
 
     @Test
     void sizeTest() {
-        assertEquals(5, map.size());
-        map.put(4, 1);
-        assertEquals(6, map.size());
+        assertEquals(keys.length, map.size());
     }
 
     @Test
-    void isEmptyTest() {
+    void emptyTest() {
         assertFalse(map.isEmpty());
-        map = new HashMap<>();
+        map.entrySet().clear();
         assertTrue(map.isEmpty());
+    }
+
+    @Test
+    void putTest() {
+        int key = 100;
+        int wrongSquareValue = key * key / 10;
+        int rightSquareValue = key * key;
+        assertNull(map.put(key, wrongSquareValue)); // new assotiation
+        int newSize = keys.length + 1;
+        assertEquals(newSize, map.size());
+        assertEquals(wrongSquareValue, map.put(key, rightSquareValue));
+        assertEquals(newSize, map.size());
+
+    }
+
+    @Test
+    void putIfAbsentTest() {
+        int keyExisting = keys[0];
+        int newKey = 80;
+        int newValue = newKey * newKey;
+        assertEquals(keyExisting * keyExisting, map.putIfAbsent(keyExisting, 100000));
+        assertEquals(keys.length, map.size()); // size has not changed
+        assertNull(map.putIfAbsent(newKey, newValue));
+        assertEquals(newValue, map.get(newKey));
+        assertEquals(keys.length + 1, map.size());
+
     }
 }

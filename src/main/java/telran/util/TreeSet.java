@@ -5,7 +5,7 @@ import java.util.Comparator;
 import java.util.NoSuchElementException;
 
 @SuppressWarnings("unchecked")
-public class TreeSet<T> implements Set<T> {
+public class TreeSet<T> implements SortedSet<T> {
     private static class Node<T> {
         T obj;
         Node<T> parent;
@@ -26,15 +26,7 @@ public class TreeSet<T> implements Set<T> {
             return current != null;
         }
 
-        private Node<T> getLeastCurrent(Node<T> leastCurrent) {
-            if (leastCurrent != null) {
-                while (leastCurrent.left != null) {
-                    leastCurrent = leastCurrent.left;
-                }
-            }
-			return leastCurrent;
-		}
-
+        
 		@Override
         public T next() {
             if (!hasNext()) {
@@ -45,25 +37,25 @@ public class TreeSet<T> implements Set<T> {
             current = getNextCurrent(current);
             return res;
         }
-
+        
         private Node<T> getNextCurrent(Node<T> nextCurrent) {
-			if (nextCurrent.right != null) {
+            if (nextCurrent.right != null) {
                 nextCurrent = getLeastCurrent(current.right);
             } else {
                 nextCurrent = getGreaterParent(current);
             }
             return nextCurrent;
 		}
-
+        
 		private Node<T> getGreaterParent(Node<T> current) {
-			Node<T> parent = current.parent;
+            Node<T> parent = current.parent;
             while (parent != null && current == parent.right) {
                 current = parent;
                 parent = parent.parent;
             }
             return parent;
 		}
-
+        
 		@Override
         public void remove() {
             if (prev == null) {
@@ -72,21 +64,30 @@ public class TreeSet<T> implements Set<T> {
             removeNode(prev);
             prev = null;
         }
-
+        
     }
 
+    private Node<T> getLeastCurrent(Node<T> leastCurrent) {
+        if (leastCurrent != null) {
+            while (leastCurrent.left != null) {
+                leastCurrent = leastCurrent.left;
+            }
+        }
+        return leastCurrent;
+    }
+    
     private Node<T> root;
     private Comparator<T> comparator;
     int size;
-
+    
     public TreeSet(Comparator<T> comparator) {
         this.comparator = comparator;
     }
-
+    
     public TreeSet() {
         this((Comparator<T>) Comparator.naturalOrder());
     }
-
+    
     @Override
     public boolean add(T obj) {
         boolean res = false;
@@ -226,6 +227,77 @@ public class TreeSet<T> implements Set<T> {
         Node<T> res = getParentOrNode(pattern);
         int compRes = comparator.compare(pattern, res.obj);
         return compRes == 0 ? null : res;
+    }
+
+    @Override
+    public T first() {
+        return getLeastCurrent(root).obj;
+    }
+
+    @Override
+    public T last() {
+        return getGreatestFrom(root).obj;
+    }
+
+    @Override
+    public T floor(T key) {
+        T res = null;
+        if (contains(key)) {
+            res = key;
+        } else {
+            res = getFloorObject(key);
+        }
+        return res;
+    }
+
+    private T getFloorObject(T key) {
+        Node<T> node = root;
+        T res = null;
+        while (node != null) {
+            int cmp = comparator.compare(node.obj, key);
+            if (cmp > 0) {
+                node = node.left;
+            } else {
+                res = node.obj;
+                node = node.right;
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public T ceiling(T key) {
+        T res = null;
+        if (contains(key)) {
+            res = key;
+        } else {
+            res = getCeilingObject(key);
+        }
+        return res;
+    }
+
+    private T getCeilingObject(T key) {
+        Node<T> node = root;
+        T res = null;
+        while (node != null) {
+            int cmp = comparator.compare(node.obj, key);
+            if (cmp > 0) {
+                res = node.obj;
+                node = node.left;
+            } else {
+                node = node.right;
+                res = node == null ? null : node.obj;
+            }
+        }
+        return res;
+    }
+
+    @Override
+    public SortedSet<T> subSet(T keyFrom, T keyTo) {
+        SortedSet<T> subSet = new TreeSet<>(comparator);
+        this.forEach(subSet::add);
+        subSet.removeIf(element -> comparator.compare(element, keyFrom) < 0 || comparator.compare(element, keyTo) >= 0);
+        return subSet;
     }
 
 }

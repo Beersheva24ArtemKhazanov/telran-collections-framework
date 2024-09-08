@@ -5,7 +5,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 
 public class LinkedList<T> implements List<T> {
-    private static class Node<T> {
+     static class Node<T> {
         T obj;
         Node<T> next;
         Node<T> prev;
@@ -70,7 +70,7 @@ public class LinkedList<T> implements List<T> {
         return current;
     }
 
-    private void addNode(Node<T> node, int index) {
+     void addNode(Node<T> node, int index) {
         if (index == 0) {
             addHead(node);
         } else if (index == size) {
@@ -145,7 +145,7 @@ public class LinkedList<T> implements List<T> {
         return res;
     }
 
-    private void removeNode(Node<T> toRemoveNode) {
+    void removeNode(Node<T> toRemoveNode) {
         if (toRemoveNode == head) {
             removeHead();
         } else if (toRemoveNode == tail) {

@@ -6,20 +6,22 @@ import java.util.Iterator;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-public abstract class SetTest extends CollectionTest{
+public abstract class SetTest extends CollectionTest {
     Set<Integer> set;
+
     @Override
-    void setUp(){
+    void setUp() {
         super.setUp();
         set = (Set<Integer>) collection;
-
     }
-     @Test
-     @Override
+
+    @Test
+    @Override
     void addExistingTest() {
         assertFalse(set.add(17));
 
     }
+
     @Test
     void getPatternTest() {
         assertEquals(-10, set.get(-10));
