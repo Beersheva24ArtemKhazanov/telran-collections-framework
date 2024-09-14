@@ -7,10 +7,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.stream.IntStream;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
 public abstract class CollectionTest {
     private static final int N_ELEMENTS = 1_000_000;
